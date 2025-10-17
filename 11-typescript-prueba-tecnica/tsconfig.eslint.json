@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src",
+    "eslint.config.ts"
+  ],
+  "compilerOptions": {
+    "module": "ESNext",
+    // ✅ permite import.meta
+    "moduleResolution": "NodeNext",
+    // ✅ resuelve correctamente módulos modernos
+    "allowJs": true,
+    "noEmit": true
+  }
+}
