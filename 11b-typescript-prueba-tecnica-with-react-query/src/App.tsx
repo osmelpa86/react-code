@@ -1,31 +1,30 @@
 import './App.css'
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useMemo, useState} from "react";
 import {SortBy, type User} from "./types.ts";
 import {UsersList} from "./components/UsersList.tsx";
+import {useUsers} from "./hooks/useUsers.ts";
+
 
 function App() {
-    const [users, setUsers] = useState<User[]>([]);
+    const {
+        isLoading,
+        isError,
+        fetchNextPage,
+        hasNextPage,
+        reset,
+        users,
+        deleteUser
+    } = useUsers();
+
+    // Ahora TypeScript sabe que `data.pages` existe
+
+
     const [showColors, setShowColors] = useState<boolean>(false);
     const [sorting, setSorting] = useState<SortBy>(SortBy.NONE);
     const [filterCountry, setFilterCountry] = useState<string | null>(null);
-    /*useRef-> para guardar un valor que queremos que se comporta entre renderizados,
-    pero que al cambiar no vuelva a renderizar el componente*/
-    const originalUsers = useRef<User[]>([]);
-
-    useEffect(() => {
-        fetch(`https://randomuser.me/api/?results=10`, {
-            method: 'GET'
-        }).then(res => res.json()).then(
-            res => {
-                setUsers(res.results)
-                originalUsers.current = res.results
-            }
-        ).catch(err => console.log(err));
-    }, []);
 
     const toggleColors = () => {
         setShowColors(!showColors);
-
     }
 
     //Otra forma de hacerlo para cambiar el valor del estado si dependemos del valor anterior, no como el casdo de toggleColor que no se neceista depender del estado anterior
@@ -56,13 +55,11 @@ function App() {
     }, [filteredUsers, sorting]);
 
     const handleDelete = (email: string) => {
-        const filteredUsers = users.filter((user) => user.email !== email);
-        setUsers(filteredUsers);
-
+        deleteUser(email);
     }
 
-    const handleReset = () => {
-        setUsers(originalUsers.current);
+    const handleReset = async () => {
+        await reset()
     }
 
     const handleChangeSort = (sort: SortBy) => {
@@ -86,8 +83,14 @@ function App() {
                 <input placeholder="Filtra por país" onChange={(e) => setFilterCountry(e.target.value)}/>
             </header>
             <main>
-                <UsersList users={sortedUsers} showColors={showColors} deleteUser={handleDelete}
-                           changeSorting={handleChangeSort}/>
+                {<UsersList users={sortedUsers} showColors={showColors} deleteUser={handleDelete}
+                            changeSorting={handleChangeSort}/>}
+                {isLoading && <p>Cargando...</p>}
+                {isError && <p>Ha habido un error</p>}
+                {!isError && users.length === 0 && <p>No hay usuarios</p>}
+                {!isLoading && !isError && hasNextPage &&
+                    <button onClick={() => fetchNextPage()}>Cargar más resultados</button>}
+                {!isLoading && !isError && !hasNextPage && <p>No hay mas resultados</p>}
             </main>
         </div>
     )

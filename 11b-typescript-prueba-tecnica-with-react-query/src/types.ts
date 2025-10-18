@@ -111,3 +111,11 @@ export interface Picture {
     medium: string
     thumbnail: string
 }
+
+
+export interface FetchUsersResult {
+    users: User[];
+    nextCursor?: number;
+}
+
+export type QueryKey = ['users'];
